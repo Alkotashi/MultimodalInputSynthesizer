@@ -10,33 +10,33 @@ namespace MyWebApp
     {
         public static void Main(string[] args)
         {
-            CreateHostBuilder(args).Build().Run();
+            BuildAndRunHost(args);
         }
 
-        public static IHostBuilder CreateHostBuilder(string[] args) =>
+        public static IHostBuilder BuildAndRunHost(string[] args) =>
             Host.CreateDefaultBuilder(args)
-                .ConfigureWebHostDefaults(webBuilder =>
+                .ConfigureWebHostDefaults(webHostBuilder =>
                 {
-                    webBuilder.UseStartup<Startup>();
-                    string envPath = Path.Combine(Directory.GetCurrentDirectory(), ".env");
-                    if (File.Exists(envPath))
+                    webHostBuilder.UseStartup<Startup>();
+                    string environmentVariablesPath = Path.Combine(Directory.GetCurrentDirectory(), ".env");
+                    if (File.Exists(environmentVariablesPath))
                     {
-                        DotNetEnv.Env.Load(envPath);
+                        DotNetEnv.Env.Load(environmentVariablesPath);
                     }
-                    webBuilder.ConfigureAppConfiguration((hostingContext, config) =>
+                    webHostBuilder.ConfigureAppConfiguration((hostingContext, configBuilder) =>
                     {
-                        config.AddEnvironmentVariables();
+                        configBuilder.AddEnvironmentVariables();
                     });
                 });
     }
 
     public class Startup
     {
-        public void ConfigureServices(IServiceCollection services)
+        public void ConfigureServices(IServiceCollection serviceCollection)
         {
         }
 
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder applicationBuilder, IWebHostEnvironment webHostEnvironment)
         {
         }
     }
