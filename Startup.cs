@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using System.IO;
+using System.Linq;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,7 +23,6 @@ if (File.Exists(envFilePath))
 }
 
 builder.Services.Configure<YourServiceOptions>(builder.Configuration.GetSection("YourService"));
-
 builder.Services.AddControllers();
 
 var app = builder.Build();
@@ -38,9 +39,7 @@ else
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-
 app.UseRouting();
-
 app.UseEndpoints(endpoints =>
 {
     endpoints.MapControllers();
