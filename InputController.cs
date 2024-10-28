@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using System.Threading.Tasks;
@@ -10,6 +11,10 @@ namespace ApiRequestRouter
     public class InputProcessingController : ControllerBase
     {
         private IConfiguration _configuration;
+        private static List<dynamic> batchForServiceA = new List<dynamic>();
+        private static List<dynamic> batchForServiceB = new List<dynamic>();
+        private static DateTime lastBatchSentTime = DateTime.Now;
+
         public InputProcessingController(IConfiguration configuration)
         {
             _configuration = configuration;
@@ -18,29 +23,45 @@ namespace ApiRequestRouter
         [HttpPost]
         public async Task<IActionResult> ProcessInput([FromBody] dynamic input)
         {
+            const int batchTimeIntervalInSeconds = 10; // For example, we send a batch every 10 seconds
             string inputType = input.type;
+            bool isBatchTimeElapsed = (DateTime.Now - lastBatchSentTime).TotalSeconds > batchTimeIntervalInSeconds;
 
             switch (inputType)
             {
                 case "ServiceA":
-                    return await HandleServiceA(input);
+                    batchForServiceA.Add(input);
+                    if (isBatchTimeElapsed)
+                    {
+                        await SendBatchToServiceA();
+                        lastBatchSentTime = DateTime.Now;
+                    }
+                    break;
                 case "ServiceB":
-                    return await HandleServiceB(input);
+                    batchForServiceB.Add(input);
+                    if (isBatchTimeElapsed)
+                    {
+                        await SendBatchToServiceB();
+                        lastBatchSentTime = DateTime.Now;
+                    }
+                    break;
                 default:
                     return BadRequest("Invalid input type.");
             }
+
+            return Accepted("Input received and will be processed in the next batch.");
         }
 
-        private async Task<IActionResult> HandleServiceA(dynamic input)
+        private async Task SendBatchToServiceA()
         {
             string serviceAEndpoint = _configuration.GetValue<string>("ServiceAEndpoint");
-            return Ok($"Processed by ServiceA with endpoint {serviceAEndpoint}");
+            batchForServiceA.Clear();
         }
 
-        private async Task<IActionResult> HandleServiceB(dynamic input)
+        private async Task SendBatchToServiceB()
         {
             string serviceBEndpoint = _configuration.GetValue<string>("ServiceBEndpoint");
-            return Ok($"Processed by ServiceB with endpoint {serviceBEndpoint}");
+            batchForServiceB.Clear();
         }
     }
 }
