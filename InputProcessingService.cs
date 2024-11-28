@@ -2,6 +2,8 @@ using System;
 using System.IO;
 using System.Speech.Recognition;
 using System.Windows.Forms;
+using System.Diagnostics;
+using System.Globalization;
 
 namespace InputSynthesizer
 {
@@ -17,7 +19,7 @@ namespace InputSynthesizer
 
         private void InitializeSpeechRecognition()
         {
-            SpeechRecognitionEngine recognizer = new SpeechRecognitionEngine(new System.Globalization.CultureInfo(voiceRecognitionCulture));
+            SpeechRecognitionEngine recognizer = new SpeechRecognitionEngine(new CultureInfo(voiceRecognitionCulture ?? "en-US"));
             recognizer.LoadGrammar(new DictationGrammar());
             recognizer.SpeechRecognized += Recognizer_SpeechRecognized;
             recognizer.SetInputToDefaultAudioDevice();
@@ -27,6 +29,16 @@ namespace InputSynthesizer
         private void Recognizer_SpeechRecognized(object sender, SpeechRecognizedEventArgs e)
         {
             Console.WriteLine("Voice input recognized: " + e.Result.Text);
+            ProcessSpeechInput(e.Result.Text);
+        }
+
+        private void ProcessSpeechInput(string input)
+        {
+            if (input.ToLower().Contains("open notepad"))
+            {
+                Process.Start("notepad.exe");
+                Console.WriteLine("Opened notepad!");
+            }
         }
 
         public void ProcessKeyboardInput()
