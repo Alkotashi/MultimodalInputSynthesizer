@@ -14,16 +14,36 @@ namespace InputSynthesizer
 
         public InputSynthesizer()
         {
-            InitializeSpeechRecognition();
+            try
+            {
+                InitializeSpeechRecognition();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to initialize speech recognition: {ex.Message}");
+            }
         }
 
         private void InitializeSpeechRecognition()
         {
-            SpeechRecognitionEngine recognizer = new SpeechRecognitionEngine(new CultureInfo(voiceRecognitionCulture ?? "en-US"));
-            recognizer.LoadGrammar(new DictationGrammar());
-            recognizer.SpeechRecognized += Recognizer_SpeechRecognized;
-            recognizer.SetInputToDefaultAudioDevice();
-            recognizer.RecognizeAsync(RecognizeMode.Multiple);
+            try
+            {
+                if (string.IsNullOrEmpty(voiceRecognitionCulture))
+                {
+                    throw new InvalidOperationException("Voice recognition culture environment variable is not set.");
+                }
+
+                SpeechRecognitionEngine recognizer = new SpeechRecognitionEngine(new CultureInfo(voiceRecognitionCulture));
+                recognizer.LoadGrammar(new DictationGrammar());
+                recognizer.SpeechRecognized += Recognizer_SpeechRecognized;
+                recognizer.SetInputToDefaultAudioDevice();
+                recognizer.RecognizeAsync(RecognizeMode.Multiple);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error initializing speech recognition: {ex.Message}");
+                throw; // Re-throw to be captured by the constructor
+            }
         }
 
         private void Recognizer_SpeechRecognized(object sender, SpeechRecognizedEventArgs e)
@@ -34,23 +54,41 @@ namespace InputSynthesizer
 
         private void ProcessSpeechInput(string input)
         {
-            if (input.ToLower().Contains("open notepad"))
+            try
             {
-                Process.Start("notepad.exe");
-                Console.WriteLine("Opened notepad!");
+                if (input.ToLower().Contains("open notepad"))
+                {
+                    Process.Start("notepad.exe");
+                    Console.WriteLine("Opened notepad!");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to process speech input: {ex.Message}");
             }
         }
 
         public void ProcessKeyboardInput()
         {
-            if (File.Exists(keyboardInputFilePath))
+            try
             {
+                if (string.IsNullOrEmpty(keyboardInputFilePath))
+                {
+                    throw new InvalidOperationException("Keyboard input file path environment variable is not set.");
+                }
+
+                if (!File.Exists(keyboardInputFilePath))
+                {
+                    Console.WriteLine("Keyboard input file not found.");
+                    return;
+                }
+
                 string text = File.ReadAllText(keyboardInputFilePath);
                 Console.WriteLine("Keyboard input read from file: " + text);
             }
-            else
+            catch (Exception ex)
             {
-                Console.WriteLine("Keyboard input file not found.");
+                Console.WriteLine($"Error reading keyboard input file: {ex.Message}");
             }
         }
 
@@ -61,8 +99,15 @@ namespace InputSynthesizer
 
         static void Main(string[] args)
         {
-            InputSynthesizer synthesizer = new InputSynthesizer();
-            synthesizer.ProcessKeyboardInput();
+            try
+            {
+                InputSynthesizer synthesizer = new InputSynthesizer();
+                synthesizer.ProcessKeyboardInput();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"An error occurred: {ex.Message}");
+            }
             Console.WriteLine("Press any key to exit...");
             Console.ReadKey();
         }
