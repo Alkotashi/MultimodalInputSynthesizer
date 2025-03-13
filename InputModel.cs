@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace InputModels
 {
@@ -40,6 +41,30 @@ namespace InputModels
         }
     }
 
+    public class InputSynthesizer
+    {
+        public static void SynthesizeInputs(List<Input> inputs)
+        {
+            Console.WriteLine("Synthesizing Inputs...");
+            foreach (var input in inputs)
+            {
+                switch (input)
+                {
+                    case TextInput text:
+                        Console.WriteLine($"Text: {text.Content}");
+                        break;
+                    case CommandInput command:
+                        Console.WriteLine($"Executing Command: {command.Command} with Parameters: {string.Join(", ", command.Parameters)}");
+                        break;
+                    case CoordinatesInput coords:
+                        Console.WriteLine($"Coordinates: Lat {coords.Latitude}, Long {coords.Longitude}");
+                        break;
+                }
+            }
+            Console.WriteLine("Synthesis Complete.");
+        }
+    }
+
     public static class EnvVariablesManager
     {
         public static string GetEnvVariable(string key)
@@ -71,6 +96,7 @@ namespace InputModels
             {
                 Console.WriteLine($"Processing {input.Type} input.");
             }
+            InputSynthesizer.SynthesizeInputs(inputs);
 
             EnvVariablesManager.LoadConfiguration();
         }
